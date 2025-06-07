@@ -7,7 +7,6 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.pipeline import make_pipeline
 from sklearn.compose import ColumnTransformer
 
-# ✅ Page configuration MUST be the first Streamlit command
 st.set_page_config(page_title="Work Suitability Predictor", layout="centered")
 
 # Load the data
@@ -38,9 +37,7 @@ model = make_pipeline(preprocessor, LogisticRegression(max_iter=1000))
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 model.fit(X_train, y_train)
 
-# -------------------------------
-# 🔷 Streamlit UI
-# -------------------------------
+# Streamlit UI
 
 st.title("🌤️ Weather Work Suitability Predictor")
 st.markdown("Enter weather conditions to check if it's suitable for work.")
