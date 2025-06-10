@@ -58,7 +58,7 @@ def generate_pdf_report(forecast_data, city_name):
         df_input["Weather_Description"] = w_label
 
         strict = (
-            data["Temperature_C"] < 5 or data["Temperature_C"] > 40 or
+            data["Temperature_C"] < 5 or data["Temperature_C"] > 50 or
             data["Precipitation_mm"] > 8 or data["Wind_Speed_kmh"] > 30 or
             w_label.lower() in ["heavy rainfall", "flood", "storm", "cyclone"]
         )
