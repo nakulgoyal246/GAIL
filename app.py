@@ -269,6 +269,76 @@ def get_realtime(lat, lon, key):
         "Wind_Speed_kmh": v["windSpeed"],
     }
 
+def send_auto_email(location, weather_label=None, work_suitability=None, forecast_summary=None):
+    location_email_map = {
+        "GAIL_Vijaipur_Madhya_Pradesh": "nakulgoyal298@gmail.com",
+        "GAIL_Pata_Uttar_Pradesh": "pata@gail.co.in",
+        "GAIL_Gandhar_Gujarat": "gandhar@gail.co.in",
+        "GAIL_Vaghodia_Gujarat": "vaghodia@gail.co.in",
+        "GAIL_Lakwa_Assam": "lakwa@gail.co.in",
+        "GAIL_Usar_Maharashtra": "usar@gail.co.in",
+        "GAIL_Dibrugarh_Assam": "dibrugarh@gail.co.in",
+        "GAIL_Dahej_Gujarat": "dahej@gail.co.in",
+        "GAIL_Mangalore_Karnataka": "mangalore@gail.co.in",
+        "GAIL_Ranchi_Jharkhand": "ranchi@gail.co.in",
+        "GAIL_Nashik_Maharashtra": "nashik@gail.co.in",
+        "GAIL_Meerut_Uttar_Pradesh": "meerut@gail.co.in",
+        "GAIL_Guna_Madhya_Pradesh": "guna@gail.co.in",
+        "GAIL_Khagaria_Bihar": "khagaria@gail.co.in",
+        "GAIL_Kutch_Gujarat": "kutch@gail.co.in",
+        "GAIL_Chitradurga_Karnataka": "chitradurga@gail.co.in",
+        "GAIL_Tirunelveli_Tamil_Nadu": "tirunelveli@gail.co.in",
+        "GAIL_Pata_Solar_Uttar_Pradesh": "patasolar@gail.co.in",
+    }
+
+    receiver_email = location_email_map.get(location)
+    if not receiver_email:
+        st.warning(f"No email configured for {location}")
+        return
+
+    sender_email = st.secrets["email"]["sender"]
+    sender_password = st.secrets["email"]["password"]
+
+    if forecast_summary:
+        subject = f"📬 3-Day Forecast Summary for {location}"
+        message = f"""Hello Team,
+
+Here is the 3-day weather and work suitability forecast for your location:
+
+
+{forecast_summary}
+
+Regards,
+Weather Forecast System
+"""
+    else:
+        subject = f"Weather Work Suitability Alert - {location}"
+        message = f"""Hello Team,
+
+Here is the real-time weather and work suitability report for your location:
+
+📍 Location: {location}
+🌤️ Weather: {weather_label}
+✅ Work Suitability: {"Suitable" if work_suitability else "Not Suitable"}
+
+Regards,
+Weather Forecast System
+"""
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = receiver_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(message, "plain"))
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+        st.success(f"📩 Email sent to {receiver_email}")
+    except Exception as e:
+        st.error(f"Email sending failed: {e}")
+
 def get_forecast_3day(lat, lon, key):
     url = "https://api.tomorrow.io/v4/timelines"
     params = {
@@ -316,6 +386,8 @@ if st.button("🚀 Fetch & Predict", key="rt"):
         else:
             st.error("❌ Work is NOT Suitable now.")
 
+        send_auto_email(city_sel, w_label, rt_pred)
+
         if st.session_state.manual_strict and strict_rt:
             st.warning("🚨 Harsh weather detected in BOTH manual and real‑time inputs!")
 
@@ -323,9 +395,9 @@ st.markdown("### 📅 3‑Day Forecast & Suitability")
 
 if st.button("🔮 Get 3‑Day Forecast & Predict"):
     st.markdown(f"📅 **Today:** {datetime.now().date().strftime('%A, %d %B %Y')}")
-
     lat, lon = city_coords[city_sel]
     forecast_data = get_forecast_3day(lat, lon, api_key)
+
     if forecast_data:
         st.session_state["forecast_data"] = forecast_data
         cols = st.columns(3)
@@ -365,6 +437,36 @@ if st.button("🔮 Get 3‑Day Forecast & Predict"):
                     st.success("✅ Suitable")
                 else:
                     st.error("❌ Not Suitable")
+
+        # ✅ Build summary for auto email
+        summary = f"\n📍 Location: {city_sel}\n\n"
+
+        for i, day in enumerate(forecast_data, 1):
+            values = day["values"]
+            date = day["startTime"][:10]
+            data = {
+                "Temperature_C": values["temperature"],
+                "Humidity_pct": values["humidity"],
+                "Precipitation_mm": values.get("precipitationIntensity", 0.0),
+                "Wind_Speed_kmh": values["windSpeed"]
+            }
+
+            df_input = pd.DataFrame([data])
+            w_code = weather_model.predict(df_input)[0]
+            w_label = le_desc.inverse_transform([w_code])[0]
+            df_input["Weather_Description"] = w_label
+
+            strict = (
+                data["Temperature_C"] < 5 or data["Temperature_C"] > 50 or
+                data["Precipitation_mm"] > 8 or data["Wind_Speed_kmh"] > 30 or
+                w_label.lower() in ["heavy rainfall", "flood", "storm", "cyclone"]
+            )
+
+            suit = "Not Suitable" if strict or work_model.predict(df_input)[0] == 0 else "Suitable"
+            summary += f"Day {i} ({date}):\n🌤 Weather: {w_label}\n{'✅' if suit == 'Suitable' else '❌'} Work Suitability: {suit}\n\n"
+
+
+        send_auto_email(city_sel, forecast_summary=summary)
 
 st.markdown("### 📤 Send Report via Email")
 email = st.text_input("Enter recipient email")
