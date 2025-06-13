@@ -111,7 +111,7 @@ def send_email_report(recipient_email, forecast_data, city_name):
 # ────────────────────────────────────────────────────────────────────────────────
 # ⚙️  APP CONFIG
 # ────────────────────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Weather Work‑Suitability", layout="centered", page_icon="🌦️")
+st.set_page_config(page_title="Weather Work‑Suitability", layout="wide", page_icon="🌦️")
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 📥 DATA LOADING & PREPARATION
@@ -272,7 +272,7 @@ def get_realtime(lat, lon, key):
 def send_auto_email(location, weather_label=None, work_suitability=None, forecast_summary=None):
     location_email_map = {
         "GAIL_Vijaipur_Madhya_Pradesh": "nakulgoyal298@gmail.com",
-        "GAIL_Pata_Uttar_Pradesh": "pata@gail.co.in",
+        "GAIL_Pata_Uttar_Pradesh": "jsdeshwal85@gmail.com",
         "GAIL_Gandhar_Gujarat": "gandhar@gail.co.in",
         "GAIL_Vaghodia_Gujarat": "vaghodia@gail.co.in",
         "GAIL_Lakwa_Assam": "lakwa@gail.co.in",
