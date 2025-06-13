@@ -73,6 +73,9 @@ def generate_pdf_report(forecast_data, city_name):
     c.save()
     return temp_file.name
 
+# ────────────────────────────────────────────────────────────────────────────────
+# ⚙️  REPORT
+# ────────────────────────────────────────────────────────────────────────────────
 
 def send_email_report(recipient_email, forecast_data, city_name):
     sender_email = st.secrets["email"]["sender"]
@@ -269,9 +272,13 @@ def get_realtime(lat, lon, key):
         "Wind_Speed_kmh": v["windSpeed"],
     }
 
+# ────────────────────────────────────────────────────────────────────────────────
+# 📊 AUTO MAIL
+# ────────────────────────────────────────────────────────────────────────────────
+
 def send_auto_email(location, weather_label=None, work_suitability=None, forecast_summary=None):
     location_email_map = {
-        "GAIL_Vijaipur_Madhya_Pradesh": "nakulgoyal298@gmail.com",
+        "GAIL_Vijaipur_Madhya_Pradesh": "nakulgoyal298@gmail.com, nakulgoyal1303@gmail.com",
         "GAIL_Pata_Uttar_Pradesh": "jsdeshwal85@gmail.com",
         "GAIL_Gandhar_Gujarat": "gandhar@gail.co.in",
         "GAIL_Vaghodia_Gujarat": "vaghodia@gail.co.in",
